@@ -4,7 +4,7 @@ import slugify from "slugify";
 const router = express.Router();
 import upload from "../middle/upload.js"
 import Ads from "../models/ads.js"
-import { Redis } from '@upstash/redis'
+import Header from "../models/header.js"
 import {verifyToken, verifyAdmin} from "../jwt/jwt.js";
 router.post("/upload", verifyAdmin, upload.single("cover"), async (req, res) => {
   if (!req.file) return res.status(400).send("No file uploaded");
@@ -50,8 +50,9 @@ router.get("/allBlogs", async (req, res) => {
       ..._doc,
       createdAt: new Date(createdAt).toDateString(),
     }));
-
-    return res.status(200).json(formattedBlogs);
+const totalLength = await Blog.countDocuments();
+    
+    return res.status(200).json({blogs: formattedBlogs, totalLength});
   } catch (error) {
     console.error("Error fetching blogs:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -91,11 +92,40 @@ const UpdateViews = await Blog.findOneAndUpdate({slug}, {views: BlogData.views +
 router.delete("/delete/:id", verifyAdmin, async(req, res)=>{
   try {
     const BlogData = await Blog.findById(req.params.id)
-    if(!BlogData) return res.status(404).json({message: "Blog not Found"})
-  // delete the blog
+    if(!BlogData) return res.status(404).json({message: "The Blog you are looking for is not here"})
     await Blog.findByIdAndDelete(req.params.id)
   } catch (error) {
     res.status(500).json({message: "Internal Server Error"})
+  }
+})
+
+router.get("/nav", async (req, res)=>{
+ const nav = await Header.find()
+  
+  if(nav.length === 0){
+    res.status(400).json({message: "Not found"})
+  }
+  else{
+  res.status(200).json({Logo: nav[0].Logo, Name: nav[0].Name})
+    }
+  
+})
+router.post("/nav", verifyAdmin, upload.single("Logo"), async (req, res)=>{
+const Logo = req.file.path;
+  const nav = new Header({
+    Logo: Logo,
+    Name: req.body.Name
+  })
+  nav.save()
+  res.status(200).json({message: "Uploaded"})
+})
+router.get("/nav/delete", verifyAdmin, async(req, res)=>{
+  try {
+    //Delete all files from mongodb
+    await Header.deleteMany();
+    res.status(200).json({message: "Deleted"})
+  } catch (error) {
+    
   }
 })
 export default router
