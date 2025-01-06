@@ -1,24 +1,3 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "backend/main.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/blog/(.*)",
-      "dest": "backend/main.js"
-    },
-    {
-      "src": "/api/auth/(.*)",
-      "dest": "backend/main.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/$1"
-    }
-  ]
+  "rewrite": [{"source": "/(.*)", "destination": "/api"}]
 }
-
