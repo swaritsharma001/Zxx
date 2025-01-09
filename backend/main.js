@@ -38,5 +38,5 @@ app.get("/*", (req, res) =>{
   res.sendFile(path.join(__dirname,"dist", "index.html"))
 })
 // Start the server
-export default app;
+export app;
 
